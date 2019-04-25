@@ -68,6 +68,7 @@ public class CommunicateActivity extends Activity {
     private String mDeviceName;
     private String mDeviceAddress;
     private TextView tvMsg;
+    private TextView tvRecv;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -90,6 +91,7 @@ public class CommunicateActivity extends Activity {
 
     private void initView() {
         tvMsg = findViewById(R.id.tv_msg);
+        tvRecv = findViewById(R.id.tv_recv);
         mEt1 = findViewById(R.id.et1);
         etCype = findViewById(R.id.et_cype);
         etGui = findViewById(R.id.et_gui);
@@ -163,6 +165,8 @@ public class CommunicateActivity extends Activity {
                     break;
                 case BluetoothLeService.ACTION_DATA_AVAILABLE://数据可用
                     Log.e(TAG, "ACTION_DATA_AVAILABLE");
+                    String recv = intent.getStringExtra(BluetoothLeService.EXTRA_DATA);
+                    tvRecv.setText("收到的数据为：" + recv);
                     break;
                 case BluetoothDevice.ACTION_UUID://uuid
                     Log.e(TAG, "ACTION_UUID");
@@ -199,13 +203,14 @@ public class CommunicateActivity extends Activity {
             mBluetoothLeService.close();
             mBluetoothLeService = null;
         }
+        unbindService(mServiceConnection);
         unregisterReceiver(mGattUpdateReceiver);
     }
 
-    public void test1(View view) {
-
-        //连接蓝牙设备
-        mBluetoothLeService.connect(mDeviceAddress);
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        finish();
     }
 
     /**

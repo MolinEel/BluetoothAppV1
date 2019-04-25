@@ -5,6 +5,7 @@
 
     <TextView
         android:id="@+id/tv_msg"
+        android:text="正在连接..."
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
@@ -44,8 +45,6 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:clickable="true"
-                android:onClick="test1"
                 android:text="指令类型：1、开箱指令" />
 
             <EditText
@@ -98,6 +97,11 @@
             android:layout_width="wrap_content"
             android:onClick="setDefault"
             android:text="设置当前设备为默认设备"
+            android:layout_height="wrap_content" />
+        <TextView
+            android:id="@+id/tv_recv"
+            android:text="收到的数据："
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
     </LinearLayout>
 </RelativeLayout>

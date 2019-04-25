@@ -22,6 +22,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 public class MainActivity extends AppCompatActivity implements AdapterView.OnItemClickListener, View.OnClickListener {
@@ -36,13 +37,14 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     private BluetoothAdapter mBluetoothAdapter;
     private LeDeviceListAdapter mListViewAdapter;
     private BluetoothDevice mDevice;
+    private ProgressBar progressBar;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
 
+        setContentView(R.layout.activity_main);
         initView();
         initData();
         //检查是否支持蓝牙
@@ -73,6 +75,8 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     }
 
     private void initView() {
+
+        progressBar = findViewById(R.id.progressbar);
         controlBluetooth = findViewById(R.id.control_bluetooth);
         aboutUs = findViewById(R.id.aboutus);
         findBluetooth = findViewById(R.id.find_bluetooth);
@@ -112,7 +116,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
     /**
      * 跳转到连接通信页面
      */
-    private void jumpConnect(String address){
+    private void jumpConnect(String address) {
+        //停止扫描设备
+        mBluetoothAdapter.cancelDiscovery();
+        progressBar.setVisibility(View.INVISIBLE);
         Intent intent = new Intent(this, CommunicateActivity.class);
 //        intent.putExtra(CommunicateActivity.EXTRAS_DEVICE_NAME, mDevice.getName());
         intent.putExtra(CommunicateActivity.EXTRAS_DEVICE_ADDRESS, address);
@@ -145,6 +152,10 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
      * 搜索蓝牙
      */
     private void findBluetooth() {
+        //搜索蓝牙时候再打开一次蓝牙
+        mBluetoothAdapter.enable();
+
+        progressBar.setVisibility(View.VISIBLE);
         //将原列表中的数据清除
         mListViewAdapter.clear();
         mBluetoothAdapter.startDiscovery();
@@ -161,7 +172,7 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             Toast.makeText(this, "关闭蓝牙", Toast.LENGTH_SHORT).show();
         } else {
             mBluetoothAdapter.enable();
-            findBluetooth();
+//            findBluetooth();
             Toast.makeText(this, "打开蓝牙", Toast.LENGTH_SHORT).show();
         }
     }
@@ -175,13 +186,18 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
             switch (action) {
                 case BluetoothAdapter.ACTION_STATE_CHANGED://蓝牙状态改变的广播
                     Log.e(TAG, "ACTION_STATE_CHANGED");
+                    if (!mBluetoothAdapter.isEnabled()) {
+                        progressBar.setVisibility(View.INVISIBLE);
+                    }
                     break;
                 case BluetoothAdapter.ACTION_DISCOVERY_STARTED://开始扫描的广播
                     Log.e(TAG, "ACTION_DISCOVERY_STARTED");
+                    progressBar.setVisibility(View.VISIBLE);
                     break;
                 case BluetoothAdapter.ACTION_DISCOVERY_FINISHED://搜索完成的广播
                     Log.e(TAG, "ACTION_DISCOVERY_FINISHED");
                     mBluetoothAdapter.cancelDiscovery();
+                    progressBar.setVisibility(View.INVISIBLE);
                     break;
                 case BluetoothDevice.ACTION_BOND_STATE_CHANGED://状态改变
                     Log.e(TAG, "ACTION_BOND_STATE_CHANGED");
@@ -192,10 +208,9 @@ public class MainActivity extends AppCompatActivity implements AdapterView.OnIte
                             .getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
 
                     //找到默认的设备
-                    if(SPUtil.getString(MainActivity.this,CommunicateActivity.DEFAULT_DEVICE,"")!=null
-                            &&!SPUtil.getString(MainActivity.this,CommunicateActivity.DEFAULT_DEVICE,"").trim().equals("")){
-                        if(SPUtil.getString(MainActivity.this,CommunicateActivity.DEFAULT_DEVICE,"").equals(device.getAddress())){
-                            mBluetoothAdapter.cancelDiscovery();
+                    if (SPUtil.getString(MainActivity.this, CommunicateActivity.DEFAULT_DEVICE, "") != null
+                            && !SPUtil.getString(MainActivity.this, CommunicateActivity.DEFAULT_DEVICE, "").trim().equals("")) {
+                        if (SPUtil.getString(MainActivity.this, CommunicateActivity.DEFAULT_DEVICE, "").equals(device.getAddress())) {
                             jumpConnect(device.getAddress());
                         }
                     }
